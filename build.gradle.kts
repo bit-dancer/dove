@@ -1,40 +1,47 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
+
 plugins {
     id("base")
     id("java")
     id("java-library")
-    id("org.springframework.boot") version "2.6.7"
 }
 
 allprojects {
     apply(plugin = "base")
     apply(plugin = "java")
     apply(plugin = "java-library")
-    apply(plugin = "io.spring.dependency-management")
 
     group = "cn.bitdancer.dove"
+    version = "0.0.1-SNAPSHOT"
 
-    tasks.withType<JavaCompile> {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
-        options.encoding = "UTF-8"
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     repositories {
         mavenLocal()
         mavenCentral()
     }
-
-    configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
-        imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:2.6.7")
-        }
-    }
 }
 
 subprojects {
-    dependencies {
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+
+    if (!project.name.contains("ui")) {
+        dependencies {
+            testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
+            compileOnly("org.projectlombok:lombok:1.18.24")
+            annotationProcessor("org.projectlombok:lombok:1.18.24")
+            testCompileOnly("org.projectlombok:lombok:1.18.24")
+            testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
+        }
+
+        tasks.withType<Test> {
+            useJUnitPlatform()
+            testLogging {
+                events = setOf(PASSED, SKIPPED, FAILED)
+            }
+        }
     }
 
     tasks.withType<Delete> {
@@ -43,7 +50,4 @@ subprojects {
         }
     }
 
-    tasks.withType<Test> {
-        useJUnitPlatform()
-    }
 }
